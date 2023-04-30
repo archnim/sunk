@@ -19,8 +19,11 @@ proc longOps() =
 spawn longOps()
 
 echo "Begin"
+check(not hasFinished)
 
-once(hasFinished) do(): echo "Finished !"
+once(hasFinished) do():
+  echo "Finished !"
+  check(hasFinished)
 
 proc rf() = echo "Really finished !"
 rf.doOnce hasFinished
