@@ -190,7 +190,8 @@ proc doOnce*(todo: proc (), cond: bool) =
 proc then*[T](fut: Future[T], todo: proc(value: T)) =
   proc p() {.async.} =
     try:
-      todo(await fut)
+      discard await fut
+      todo()
     except:
       discard
   discard p()
