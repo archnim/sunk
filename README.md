@@ -6,6 +6,12 @@
 
 Documentation: [https://archnim.github.io/sunk-docs](https://archnim.github.io/sunk-docs)
 
+## Installation
+
+```sh
+nimble install sunk
+```
+
 
 ## Example 1
 

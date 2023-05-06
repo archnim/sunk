@@ -1,6 +1,11 @@
 import asyncdispatch
 export asyncdispatch
 
+## Installation:
+## ```sh
+## nimble install sunk
+## ```
+
 type
 
   PStatus = enum
