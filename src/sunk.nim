@@ -149,7 +149,7 @@ proc doEvery*(todo: proc (), ms: int or float): CyclicOps =
 
   return cycle
 
-proc once*(cond: bool, todo: proc ()) =
+proc once*(cond: var bool, todo: proc ()) =
   ## Checks `cond` in background every 5 milliseconds
   ## and executes actions passed as `todo` once it's true
 
@@ -166,14 +166,16 @@ proc once*(cond: bool, todo: proc ()) =
     spawn longOps()
     once(hasFinished) do(): echo "Finished !"
 
+  let cond = cond.addr
+
   let p = proc () {.async.} =
-    while not cond:
+    while not cond[]:
       await sleepAsync(5)
     todo()
 
   discard p()
 
-proc doOnce*(todo: proc (), cond: bool) =
+proc doOnce*(todo: proc (), cond: var bool) =
   ## Checks `cond` in background every 5 milliseconds
   ## and executes actions passed as `todo` once it's true
 
@@ -192,8 +194,10 @@ proc doOnce*(todo: proc (), cond: bool) =
     spawn longOps()
     notify.doOnce(hasFinished)
 
+  let cond = cond.addr
+
   let p = proc () {.async.} =
-    while not cond:
+    while not cond[]:
       await sleepAsync(5)
     todo()
 
