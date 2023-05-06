@@ -1,4 +1,5 @@
 import asyncdispatch
+export asyncdispatch
 
 type
 
@@ -13,37 +14,43 @@ type
     status*: CStatus = running
 
 proc `$`*(pend: PendingOps): string =
+  ## Prints out a pending operation
   "[ Pending Ops Handle: " & $pend.status & " ]"
 
 proc cancel*(pend: PendingOps) =
+  ## Cancels a pending operation
   if pend.status == pending:
     pend.status = canceled
 
 proc `$`*(cycle: CyclicOps): string =
+  ## Prints out a cyclic operation
   "[ Cyclic Ops Handle: " & $cycle.status & " ]"
 
 proc pause*(cycle: CyclicOps) =
+  ## Pauses a cyclic operation
   if cycle.status == running:
     cycle.status = paused
 
 proc resume*(cycle: CyclicOps) =
+  ## Resumes a cyclic operation
   if cycle.status == paused:
     cycle.status = running
 
 proc stop*(cycle: CyclicOps) =
+  ## Stops a cyclic operation
   if cycle.status != stopped:
     cycle.status = stopped
 
 proc after*(ms: int or float, todo: proc ()): PendingOps =
   ## Executes actions passed as `todo` after `ms` milliseconds
-  ## Without blocking the main execution flow while waiting
+  ## without blocking the main execution flow while waiting.
   ## An equivalent of javascript's setTimeout
 
   runnableExamples:
     discard after(2_500) do():
       echo "2.5 seconds passed !"
 
-    var pend = after(3_000) do():
+    var pend: PendingOps = after(3_000) do():
       echo "This line will never be executed !"
 
     # Let's cancel the second pennding process
@@ -66,7 +73,7 @@ proc after*(ms: int or float, todo: proc ()): PendingOps =
 
 proc doAfter*(todo: proc (), ms: int or float): PendingOps =
   ## Executes actions passed as `todo` after `ms` milliseconds
-  ## Without blocking the main execution flow while waiting
+  ## without blocking the main execution flow while waiting
 
   runnableExamples:
     proc todo() = echo "2.5 seconds passed !"
@@ -88,11 +95,11 @@ proc doAfter*(todo: proc (), ms: int or float): PendingOps =
 
 proc every*(ms: int or float, todo: proc ()): CyclicOps =
   ## Executes actions passed as `todo` every `ms` milliseconds
-  ## Without blocking the main execution flow while waiting
+  ## without blocking the main execution flow while waiting.
   ## An equivalent of javascript's setInterval
 
   runnableExamples:
-    var cycle = every(2_000) do():
+    var cycle: CyclicOps = every(2_000) do():
       echo "This line will be executed three times !"
 
     # To stop the background process after 6.5 seconds:
@@ -114,7 +121,7 @@ proc every*(ms: int or float, todo: proc ()): CyclicOps =
 
 proc doEvery*(todo: proc (), ms: int or float): CyclicOps =
   ## Executes actions passed as `todo` every `ms` milliseconds
-  ## Without blocking the main execution flow while waiting
+  ## without blocking the main execution flow while waiting
 
   runnableExamples:
     proc todo() = echo "This line will be executed three times !"
@@ -139,7 +146,7 @@ proc doEvery*(todo: proc (), ms: int or float): CyclicOps =
 
 proc once*(cond: bool, todo: proc ()) =
   ## Checks `cond` in background every 5 milliseconds
-  ## And executes actions passed as `todo` once it's true
+  ## and executes actions passed as `todo` once it's true
 
   runnableExamples:
     import threadpool, os
@@ -163,7 +170,7 @@ proc once*(cond: bool, todo: proc ()) =
 
 proc doOnce*(todo: proc (), cond: bool) =
   ## Checks `cond` in background every 5 milliseconds
-  ## And executes actions passed as `todo` once it's true
+  ## and executes actions passed as `todo` once it's true
 
   runnableExamples:
     import threadpool, os
@@ -188,15 +195,28 @@ proc doOnce*(todo: proc (), cond: bool) =
   discard p()
 
 proc then*[T](fut: Future[T], todo: proc(value: T)) =
+  runnableExamples:
+    import std/[asyncdispatch, httpclient]
+    var
+      client = newAsyncHttpClient()
+      f = client.getContent("https://google.com")
+    f.then do(return_value: string): echo return_value
+
   proc p() {.async.} =
     try:
-      discard await fut
-      todo()
+      todo(await fut)
     except:
       discard
   discard p()
 
 proc then*[T](fut: Future[T], todo: proc()) =
+  runnableExamples:
+    import std/[asyncdispatch, httpclient]
+    var
+      client = newAsyncHttpClient()
+      f = client.getContent("https://google.com")
+    f.then do(): echo "Finished with success !"
+
   proc p() {.async.} =
     try:
       discard await fut
@@ -206,6 +226,13 @@ proc then*[T](fut: Future[T], todo: proc()) =
   discard p()
 
 proc catch*[T](fut: Future[T], todo: proc(error: ref Exception)) =
+  runnableExamples:
+    import std/[asyncdispatch, httpclient]
+    var
+      client = newAsyncHttpClient()
+      f = client.getContent("https://google.com")
+    f.catch do(what_s_wrong: ref Exception): echo what_s_wrong.msg
+
   proc p() {.async.} =
     try:
       discard await fut
@@ -214,6 +241,13 @@ proc catch*[T](fut: Future[T], todo: proc(error: ref Exception)) =
   discard p()
 
 proc catch*[T](fut: Future[T], todo: proc()) =
+  runnableExamples:
+    import std/[asyncdispatch, httpclient]
+    var
+      client = newAsyncHttpClient()
+      f = client.getContent("https://google.com")
+    f.catch do(): echo "Failed !"
+
   proc p() {.async.} =
     try:
       discard await fut
@@ -222,6 +256,13 @@ proc catch*[T](fut: Future[T], todo: proc()) =
   discard p()
 
 proc `finally`*[T](fut: Future[T], todo: proc()) =
+  runnableExamples:
+    import std/[asyncdispatch, httpclient]
+    var
+      client = newAsyncHttpClient()
+      f = client.getContent("https://google.com")
+    f.finally do(): echo "Finished !"
+
   proc p() {.async.} =
     try:
       discard await fut
