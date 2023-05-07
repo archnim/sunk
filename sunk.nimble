@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.1"
+version       = "0.1.2"
 author        = "archnim"
 description   = "Few async tools for nim (then, catch, finally, and more)"
 license       = "MIT"
